@@ -141,16 +141,23 @@ def _evaluate_heuristic_bant(
 
     # 2. AUTHORITY SCORE (0 - 25)
     role_text = f"{lead.job_title or ''} {lead.decision_maker_role or ''}".lower()
-    if any(k in role_text for k in ("ceo", "cto", "coo", "cfo", "founder", "co-founder", "fundador", "director general", "presidente", "owner", "c-level")):
+    role_words = set(re.findall(r"[a-záéíóúñ]+", role_text))
+    if (
+        role_words & {"ceo", "cto", "coo", "cfo", "founder", "fundador", "presidente", "owner"}
+        or any(k in role_text for k in ("co-founder", "director general", "c-level", "chief"))
+    ):
         authority_score = 24
         authority_rationale = f"Tomador de decisión final C-Level/Founder ({lead.job_title or lead.decision_maker_role})."
-    elif any(k in role_text for k in ("vp", "vice president", "director", "head of", "gerente general", "gerente comercial", "cro")):
+    elif (
+        role_words & {"vp", "director", "cro"}
+        or any(k in role_text for k in ("vice president", "head of", "gerente general", "gerente comercial"))
+    ):
         authority_score = 20
         authority_rationale = f"Ejecutivo con alta influencia presupuestaria ({lead.job_title or lead.decision_maker_role})."
-    elif any(k in role_text for k in ("manager", "gerente", "líder", "lead", "jefe", "product owner", "operations")):
+    elif role_words & {"manager", "gerente", "líder", "lider", "lead", "jefe"} or "product owner" in role_text:
         authority_score = 15
         authority_rationale = f"Mando medio / Champion operativo ({lead.job_title or lead.decision_maker_role}); puede requerir aprobación de dirección."
-    elif any(k in role_text for k in ("estudiante", "student", "practicante", "intern", "becario")):
+    elif role_words & {"estudiante", "student", "practicante", "intern", "becario"}:
         authority_score = 3
         authority_rationale = f"Perfil académico/sin autoridad de compra comercial ({lead.job_title or 'Estudiante/Practicante'})."
     elif role_text.strip():

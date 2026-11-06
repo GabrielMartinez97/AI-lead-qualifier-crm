@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusLead AI — Agente Cualificador BANT &amp; CRM de Automatización</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-cluster">
+        <div class="brand-mark" aria-hidden="true">NL</div>
+        <div>
+          <div class="brand-title-row">
+            <h1 class="brand-title">NexusLead AI</h1>
+            <span class="status-pill" id="ai-engine-badge">
+              <span class="status-dot"></span>
+              <span id="ai-engine-label">Motor IA Activo</span>
+            </span>
+          </div>
+          <p class="brand-subtitle">Agente Cualificador BANT &middot; Ingesta Multi-Canal &middot; Secuencias Comerciales Autónomas</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-ghost" id="btn-seed-reset" title="Restaurar los 6 leads B2B de demostración">
+          Restaurar Demo
+        </button>
+        <a href="/docs" target="_blank" rel="noopener" class="btn btn-ghost">
+          API Swagger /docs &#8599;
+        </a>
+        <button type="button" class="btn btn-primary" id="btn-open-new-lead">
+          + Capturar Lead / CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Recruiter 1-Click Live Simulator Strip -->
+    <section class="simulator-bar" aria-label="Simulador interactivo en 1 clic">
+      <div class="simulator-header">
+        <span class="sim-badge">SIMULADOR EN VIVO (1-CLIC)</span>
+        <span class="sim-caption">Inyecta leads o webhooks firmados y observa cómo el Agente IA calcula el BANT, asigna ejecutivo y programa secuencias:</span>
+      </div>
+      <div class="simulator-buttons">
+        <button type="button" class="sim-btn sim-hot" data-scenario="enterprise_hot">
+          &#9889; Lead Enterprise HOT ($48k USD)
+        </button>
+        <button type="button" class="sim-btn sim-webhook" data-scenario="typeform_webhook">
+          &#128229; Webhook Typeform ($16.5k)
+        </button>
+        <button type="button" class="sim-btn sim-webhook" data-scenario="meta_ads_webhook">
+          &#128227; Webhook Meta Ads (HMAC)
+        </button>
+        <button type="button" class="sim-btn sim-cold" data-scenario="cold_nurture">
+          &#10052; Lead Cold (Nurturing)
+        </button>
+        <button type="button" class="sim-btn sim-disq" data-scenario="disqualified_student">
+          &#128683; Filtrar No-ICP (Gmail)
+        </button>
+      </div>
+    </section>
+
+    <!-- Executive KPI Metrics -->
+    <section class="kpi-grid" aria-label="Métricas ejecutivas del pipeline">
+      <article class="kpi-card">
+        <span class="kpi-label">Pipeline Activo Estimado</span>
+        <strong class="kpi-value mono" id="kpi-pipeline-usd">$0</strong>
+        <span class="kpi-foot" id="kpi-total-leads">0 leads registrados</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Score BANT Promedio</span>
+        <strong class="kpi-value mono" id="kpi-avg-score">0.0<small>/100</small></strong>
+        <span class="kpi-foot">Budget &middot; Authority &middot; Need &middot; Timeline</span>
+      </article>
+      <article class="kpi-card kpi-card-hot">
+        <span class="kpi-label">Leads Prioridad HOT (&ge;75 pts)</span>
+        <strong class="kpi-value mono" id="kpi-hot-count">0</strong>
+        <span class="kpi-foot">Ruta Fast-Track AE Senior (&lt;15 min)</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Tasa Lista para Ventas (Hot + Warm)</span>
+        <strong class="kpi-value mono" id="kpi-ready-rate">0%</strong>
+        <span class="kpi-foot">Filtrado autónomo por Agente IA</span>
+      </article>
+    </section>
+
+    <!-- Navigation Tabs & Filter Controls -->
+    <section class="controls-bar">
+      <div class="view-tabs" role="tablist" aria-label="Vistas del CRM">
+        <button type="button" role="tab" aria-selected="true" class="tab-btn active" data-tab="kanban">
+          Tablero Kanban (Pipeline)
+        </button>
+        <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="table">
+          Tabla BANT &amp; Filtros
+        </button>
+        <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="automation">
+          Cola de Secuencias &amp; Webhooks
+        </button>
+      </div>
+
+      <div class="filters-row">
+        <input type="search" id="filter-search" class="input-control" placeholder="Buscar por nombre, empresa, cargo o email..." aria-label="Buscar leads" />
+        <select id="filter-tier" class="input-control" aria-label="Filtrar por Tier BANT">
+          <option value="">Todos los Tiers BANT</option>
+          <option value="hot">HOT (&ge;75 pts)</option>
+          <option value="warm">WARM (50–74 pts)</option>
+          <option value="cold">COLD (30–49 pts)</option>
+          <option value="disqualified">DISQUALIFIED (&lt;30 pts)</option>
+        </select>
+        <select id="filter-source" class="input-control" aria-label="Filtrar por Canal">
+          <option value="">Todos los Canales</option>
+          <option value="website_form">Formulario Web</option>
+          <option value="typeform_webhook">Webhook Typeform</option>
+          <option value="meta_ads_webhook">Webhook Meta Ads</option>
+          <option value="linkedin_ads_webhook">Webhook LinkedIn Ads</option>
+          <option value="csv_import">Importación CSV</option>
+          <option value="api_direct">API Directa</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- TAB 1: KANBAN PIPELINE VIEW -->
+    <section id="view-kanban" class="view-panel active" aria-label="Embudo comercial Kanban">
+      <div class="kanban-board" id="kanban-board">
+        <!-- Populated dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- TAB 2: RESPONSIVE DATA TABLE VIEW -->
+    <section id="view-table" class="view-panel" hidden aria-label="Tabla detallada de leads">
+      <div tabindex="0" role="region" aria-labelledby="leads-table-caption" class="table-wrapper">
+        <table>
+          <caption id="leads-table-caption" class="sr-only">Directorio de leads B2B cualificados por el Agente IA</caption>
+          <thead>
+            <tr>
+              <th>Prospecto &amp; Empresa</th>
+              <th>Score BANT</th>
+              <th>Tier</th>
+              <th>Presupuesto</th>
+              <th>Etapa CRM</th>
+              <th>Canal</th>
+              <th>Ejecutivo Asignado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="leads-table-body">
+            <!-- Populated dynamically by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: AUTOMATION SEQUENCES & WEBHOOK MONITOR VIEW -->
+    <section id="view-automation" class="view-panel" hidden aria-label="Secuencias de seguimiento y registro de Webhooks">
+      <div class="split-automation-grid">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div>
+              <h2>Cola de Seguimiento Multi-Canal (Follow-Up Cadences)</h2>
+              <p class="panel-subtitle">Pasos programados automáticamente por el Agente IA según la puntuación BANT de cada lead.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-run-all-due">
+              &#9654; Ejecutar Pendientes Ahora
+            </button>
+          </div>
+          <div class="task-list" id="global-tasks-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <div>
+              <h2>Monitor de Webhooks (Entrantes &amp; Salientes)</h2>
+              <p class="panel-subtitle">Auditoría en tiempo real de payloads normalizados (HMAC-SHA256) y alertas salientes a Slack/CRM.</p>
+            </div>
+          </div>
+          <div class="webhook-list" id="webhook-logs-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- NATIVE MODAL DIALOG 1: LEAD BANT INSPECTOR & LIVE REPLY SIMULATOR -->
+  <dialog id="lead-inspector-dialog" closedby="any" aria-labelledby="inspector-lead-name" class="inspector-dialog">
+    <div class="dialog-inner" id="inspector-content">
+      <!-- Populated dynamically when a lead is clicked -->
+    </div>
+  </dialog>
+
+  <!-- NATIVE MODAL DIALOG 2: NEW LEAD / CSV IMPORT -->
+  <dialog id="new-lead-dialog" closedby="any" aria-labelledby="new-lead-dialog-title" class="form-dialog">
+    <div class="dialog-inner">
+      <div class="dialog-header">
+        <div>
+          <span class="eyebrow">INGESTA EN TIEMPO REAL</span>
+          <h2 id="new-lead-dialog-title">Capturar Nuevo Lead o Importar CSV</h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="btn-close" aria-label="Cerrar ventana">&times;</button>
+        </form>
+      </div>
+
+      <form id="create-lead-form" class="lead-form">
+        <div class="form-grid">
+          <label class="field">
+            <span>Nombre completo *</span>
+            <input type="text" name="full_name" required autofocus placeholder="Ej. Andrea Morales" />
+          </label>
+          <label class="field">
+            <span>Email corporativo *</span>
+            <input type="email" name="email" required placeholder="andrea@empresa-b2b.cl" />
+          </label>
+          <label class="field">
+            <span>Cargo / Rol *</span>
+            <input type="text" name="job_title" placeholder="Ej. CEO, CTO, VP of Sales, Analista" />
+          </label>
+          <label class="field">
+            <span>Empresa</span>
+            <input type="text" name="company_name" placeholder="Ej. DataFlow Corp" />
+          </label>
+          <label class="field">
+            <span>Tamaño de Empresa</span>
+            <select name="company_size">
+              <option value="51-200">51-200 empleados</option>
+              <option value="201-1000">201-1000 empleados</option>
+              <option value="1000+">1000+ empleados</option>
+              <option value="11-50">11-50 empleados</option>
+              <option value="1-10">1-10 empleados</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Industria</span>
+            <input type="text" name="industry" placeholder="Ej. Fintech, SaaS, Logística" />
+          </label>
+          <label class="field">
+            <span>Presupuesto Estimado (USD)</span>
+            <input type="number" name="estimated_budget_usd" min="0" step="500" placeholder="Ej. 25000" />
+          </label>
+          <label class="field">
+            <span>Urgencia / Timeline</span>
+            <select name="timeline_urgency">
+              <option value="immediate">Inmediato (&lt; 30 días)</option>
+              <option value="1_3_months">Corto plazo (1 a 3 meses)</option>
+              <option value="3_6_months">Mediano plazo (3 a 6 meses)</option>
+              <option value="exploring">Explorando opciones</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Necesidad Principal / Dolor Comercial (BANT Need)</span>
+          <textarea name="primary_need" rows="2" placeholder="Ej. Necesitamos automatizar la cualificación de 500 leads mensuales y conectar por webhook con nuestro CRM..."></textarea>
+        </label>
+
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-ghost" id="btn-cancel-new-lead">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Ingresar &amp; Cualificar con IA</button>
+        </div>
+      </form>
+
+      <hr class="divider" />
+
+      <div class="csv-import-box">
+        <h3>Importación Masiva por CSV</h3>
+        <p class="panel-subtitle">Pega líneas CSV con cabeceras (<code>full_name,email,company_name,job_title,estimated_budget_usd,company_size,primary_need,timeline_urgency</code>):</p>
+        <textarea id="csv-raw-input" rows="3" class="mono-textarea">full_name,email,company_name,job_title,estimated_budget_usd,company_size,primary_need,timeline_urgency
+Elena Rojas,elena@cloudscale.io,CloudScale AI,CEO,45000,51-200,Automatizar ventas B2B y cualificación con agentes IA,immediate
+Javier Núñez,jnunez@retailpro.mx,RetailPro,Gerente de Operaciones,15000,51-200,Seguimiento automático de prospectos por WhatsApp,1_3_months</textarea>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-secondary" id="btn-submit-csv">Importar Lote CSV</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
