@@ -1,0 +1,17 @@
+services:
+  nexuslead-ai-crm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexuslead-ai-crm
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=NexusLead AI — Agente Cualificador de Leads & CRM
+      - DATABASE_URL=sqlite:///./ai_lead_crm.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-whsec_nexus_lead_demo_2026}
+      - AUTO_QUALIFY_ON_INGEST=true
+      - AUTO_ENROLL_SEQUENCE_ON_QUALIFY=true
+    restart: unless-stopped
