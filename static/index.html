@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    try {
+      document.querySelector('meta[name="color-scheme"]').content =
+        localStorage.getItem("color-scheme") ?? "light dark";
+    } catch (_) {}
+  </script>
   <title>NexusLead AI — Agente Cualificador BANT &amp; CRM de Automatización</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,11 +29,14 @@
               <span id="ai-engine-label">Motor IA Activo</span>
             </span>
           </div>
-          <p class="brand-subtitle">Agente Cualificador BANT &middot; Ingesta Multi-Canal &middot; Secuencias Comerciales Autónomas</p>
+          <p class="brand-subtitle">RevOps Command Center &middot; Agente Cualificador BANT &middot; Secuencias Comerciales Autónomas</p>
         </div>
       </div>
 
       <div class="topbar-actions">
+        <button type="button" class="btn btn-ghost" id="btn-theme-toggle" title="Cambiar tema claro / oscuro">
+          <span id="theme-toggle-label">Tema Claro / Oscuro</span>
+        </button>
         <button type="button" class="btn btn-ghost" id="btn-seed-reset" title="Restaurar los 6 leads B2B de demostración">
           Restaurar Demo
         </button>
@@ -66,27 +76,44 @@
       </div>
     </section>
 
-    <!-- Executive KPI Metrics -->
+    <!-- Executive KPI Metrics + Live BANT Telemetry Strip -->
     <section class="kpi-grid" aria-label="Métricas ejecutivas del pipeline">
       <article class="kpi-card">
-        <span class="kpi-label">Pipeline Activo Estimado</span>
+        <div class="kpi-card-head">
+          <span class="kpi-label">Pipeline Activo Estimado</span>
+          <span class="kpi-chip mono">USD</span>
+        </div>
         <strong class="kpi-value mono" id="kpi-pipeline-usd">$0</strong>
         <span class="kpi-foot" id="kpi-total-leads">0 leads registrados</span>
       </article>
       <article class="kpi-card">
-        <span class="kpi-label">Score BANT Promedio</span>
+        <div class="kpi-card-head">
+          <span class="kpi-label">Score BANT Promedio</span>
+          <span class="kpi-chip mono">IA</span>
+        </div>
         <strong class="kpi-value mono" id="kpi-avg-score">0.0<small>/100</small></strong>
         <span class="kpi-foot">Budget &middot; Authority &middot; Need &middot; Timeline</span>
       </article>
       <article class="kpi-card kpi-card-hot">
-        <span class="kpi-label">Leads Prioridad HOT (&ge;75 pts)</span>
+        <div class="kpi-card-head">
+          <span class="kpi-label">Leads Prioridad HOT (&ge;75 pts)</span>
+          <span class="kpi-chip kpi-chip-hot mono">SLA &lt;15m</span>
+        </div>
         <strong class="kpi-value mono" id="kpi-hot-count">0</strong>
-        <span class="kpi-foot">Ruta Fast-Track AE Senior (&lt;15 min)</span>
+        <span class="kpi-foot">Ruta Fast-Track AE Senior Enterprise</span>
       </article>
       <article class="kpi-card">
-        <span class="kpi-label">Tasa Lista para Ventas (Hot + Warm)</span>
+        <div class="kpi-card-head">
+          <span class="kpi-label">Tasa Lista para Ventas</span>
+          <span class="kpi-chip mono">ICP FIT</span>
+        </div>
         <strong class="kpi-value mono" id="kpi-ready-rate">0%</strong>
-        <span class="kpi-foot">Filtrado autónomo por Agente IA</span>
+        <div class="telemetry-bar" id="bant-telemetry-bar" aria-label="Distribución de Tiers BANT">
+          <div class="telemetry-seg seg-hot" id="seg-hot" style="inline-size:25%" title="Hot"></div>
+          <div class="telemetry-seg seg-warm" id="seg-warm" style="inline-size:25%" title="Warm"></div>
+          <div class="telemetry-seg seg-cold" id="seg-cold" style="inline-size:25%" title="Cold"></div>
+          <div class="telemetry-seg seg-disq" id="seg-disq" style="inline-size:25%" title="Disqualified"></div>
+        </div>
       </article>
     </section>
 
@@ -105,7 +132,10 @@
       </div>
 
       <div class="filters-row">
-        <input type="search" id="filter-search" class="input-control" placeholder="Buscar por nombre, empresa, cargo o email..." aria-label="Buscar leads" />
+        <div class="search-field-wrap">
+          <input type="search" id="filter-search" class="input-control" placeholder="Buscar prospecto, empresa o cargo... (Presiona /)" aria-label="Buscar leads" />
+          <kbd class="search-kbd mono" aria-hidden="true">/</kbd>
+        </div>
         <select id="filter-tier" class="input-control" aria-label="Filtrar por Tier BANT">
           <option value="">Todos los Tiers BANT</option>
           <option value="hot">HOT (&ge;75 pts)</option>
@@ -126,14 +156,14 @@
     </section>
 
     <!-- TAB 1: KANBAN PIPELINE VIEW -->
-    <section id="view-kanban" class="view-panel active" aria-label="Embudo comercial Kanban">
+    <section id="view-kanban" class="view-panel active" tabindex="-1" aria-label="Embudo comercial Kanban">
       <div class="kanban-board" id="kanban-board">
         <!-- Populated dynamically by app.js -->
       </div>
     </section>
 
     <!-- TAB 2: RESPONSIVE DATA TABLE VIEW -->
-    <section id="view-table" class="view-panel" hidden aria-label="Tabla detallada de leads">
+    <section id="view-table" class="view-panel" tabindex="-1" hidden aria-label="Tabla detallada de leads">
       <div tabindex="0" role="region" aria-labelledby="leads-table-caption" class="table-wrapper">
         <table>
           <caption id="leads-table-caption" class="sr-only">Directorio de leads B2B cualificados por el Agente IA</caption>
@@ -157,7 +187,7 @@
     </section>
 
     <!-- TAB 3: AUTOMATION SEQUENCES & WEBHOOK MONITOR VIEW -->
-    <section id="view-automation" class="view-panel" hidden aria-label="Secuencias de seguimiento y registro de Webhooks">
+    <section id="view-automation" class="view-panel" tabindex="-1" hidden aria-label="Secuencias de seguimiento y registro de Webhooks">
       <div class="split-automation-grid">
         <div class="panel-card">
           <div class="panel-card-header">

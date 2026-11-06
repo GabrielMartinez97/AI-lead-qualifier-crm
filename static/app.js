@@ -61,6 +61,44 @@ function showToast(message) {
   setTimeout(() => el.remove(), 4200);
 }
 
+// Two-state color-scheme toggle per modern-web-guidance `dark-mode` & `dark-mode-toggle`
+function getResolvedColorScheme() {
+  const meta = document.querySelector('meta[name="color-scheme"]');
+  const metaVal = meta ? meta.content : "light dark";
+  if (metaVal === "dark" || metaVal === "light") {
+    return metaVal;
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function syncThemeButtonLabel() {
+  const labelEl = document.getElementById("theme-toggle-label");
+  if (!labelEl) return;
+  const current = getResolvedColorScheme();
+  labelEl.textContent = current === "dark" ? "☀ Modo Claro" : "☾ Modo Oscuro";
+}
+
+function toggleColorScheme() {
+  const meta = document.querySelector('meta[name="color-scheme"]');
+  if (!meta) return;
+  const currentRendered = getResolvedColorScheme();
+  const target = currentRendered === "dark" ? "light" : "dark";
+  const systemScheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+  try {
+    if (target === systemScheme) {
+      localStorage.removeItem("color-scheme");
+      meta.content = "light dark";
+    } else {
+      localStorage.setItem("color-scheme", target);
+      meta.content = target;
+    }
+  } catch (_) {
+    meta.content = target;
+  }
+  syncThemeButtonLabel();
+}
+
 // Fallback for <dialog closedby="any"> per modern-web-guidance `light-dismiss-a-dialog`
 function setupDialogLightDismissFallbacks() {
   if (!("closedBy" in HTMLDialogElement.prototype)) {
@@ -92,6 +130,24 @@ async function fetchJson(url, options = {}) {
   return res.json();
 }
 
+function renderTelemetryBar(stats) {
+  const total = Math.max(1, stats.total_leads || 1);
+  const byTier = stats.by_tier || {};
+  const hotPct = Math.round(((byTier.hot || 0) / total) * 100);
+  const warmPct = Math.round(((byTier.warm || 0) / total) * 100);
+  const coldPct = Math.round(((byTier.cold || 0) / total) * 100);
+  const disqPct = Math.max(0, 100 - hotPct - warmPct - coldPct);
+
+  const segHot = document.getElementById("seg-hot");
+  const segWarm = document.getElementById("seg-warm");
+  const segCold = document.getElementById("seg-cold");
+  const segDisq = document.getElementById("seg-disq");
+  if (segHot) segHot.style.inlineSize = `${hotPct}%`;
+  if (segWarm) segWarm.style.inlineSize = `${warmPct}%`;
+  if (segCold) segCold.style.inlineSize = `${coldPct}%`;
+  if (segDisq) segDisq.style.inlineSize = `${disqPct}%`;
+}
+
 async function refreshWorkspace() {
   const search = document.getElementById("filter-search").value.trim();
   const tier = document.getElementById("filter-tier").value;
@@ -118,6 +174,8 @@ async function refreshWorkspace() {
   document.getElementById("kpi-avg-score").innerHTML = `${stats.average_bant_score}<small>/100</small>`;
   document.getElementById("kpi-hot-count").textContent = String(stats.hot_leads_count);
   document.getElementById("kpi-ready-rate").textContent = `${stats.conversion_ready_rate}%`;
+
+  renderTelemetryBar(stats);
 
   allLeadsCache = leadsResp.items || [];
   renderKanban(allLeadsCache);
@@ -519,8 +577,28 @@ async function openLeadInspector(leadId) {
 
 function initEventListeners() {
   setupDialogLightDismissFallbacks();
+  syncThemeButtonLabel();
 
-  // View Tab Switching
+  // Theme Toggle & OS scheme listeners per `dark-mode` & `dark-mode-toggle`
+  document.getElementById("btn-theme-toggle").addEventListener("click", toggleColorScheme);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeButtonLabel);
+  window.addEventListener("storage", (e) => {
+    if (e.key === "color-scheme") {
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = e.newValue ?? "light dark";
+      syncThemeButtonLabel();
+    }
+  });
+
+  // Keyboard shortcut `/` to focus search input
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      document.getElementById("filter-search")?.focus();
+    }
+  });
+
+  // View Tab Switching with View Transitions API (`same-document-transitions`)
   const tabBtns = document.querySelectorAll(".tab-btn");
   const panels = {
     kanban: document.getElementById("view-kanban"),
@@ -530,23 +608,37 @@ function initEventListeners() {
 
   for (const btn of tabBtns) {
     btn.addEventListener("click", () => {
-      for (const b of tabBtns) {
-        b.classList.remove("active");
-        b.setAttribute("aria-selected", "false");
-      }
-      btn.classList.add("active");
-      btn.setAttribute("aria-selected", "true");
-
       const target = btn.dataset.tab;
-      for (const [key, panel] of Object.entries(panels)) {
-        if (key === target) {
-          panel.hidden = false;
-          panel.classList.add("active");
-        } else {
-          panel.hidden = true;
-          panel.classList.remove("active");
+      const applyTabSwitch = () => {
+        for (const b of tabBtns) {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
         }
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+
+        for (const [key, panel] of Object.entries(panels)) {
+          if (key === target) {
+            panel.hidden = false;
+            panel.classList.add("active");
+          } else {
+            panel.hidden = true;
+            panel.classList.remove("active");
+          }
+        }
+      };
+
+      if (!document.startViewTransition) {
+        applyTabSwitch();
+        panels[target]?.focus();
+        return;
       }
+      const transition = document.startViewTransition(() => {
+        applyTabSwitch();
+      });
+      transition.finished.finally(() => {
+        panels[target]?.focus();
+      });
     });
   }
 

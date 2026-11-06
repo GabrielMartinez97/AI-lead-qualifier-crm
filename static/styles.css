@@ -1,14 +1,76 @@
 :root {
-  --bg-canvas: #0b0f17;
-  --bg-surface: #111827;
-  --bg-elevated: #172033;
-  --bg-hover: #1e293b;
-  --border-subtle: #243247;
-  --border-strong: #334155;
+  color-scheme: light dark;
 
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+
+  /* Light & Dark Raw Tokens */
+  --bg-canvas-light: #f4f6f9;
+  --bg-canvas-dark: #090d14;
+  --bg-surface-light: #ffffff;
+  --bg-surface-dark: #111723;
+  --bg-elevated-light: #f8fafc;
+  --bg-elevated-dark: #161f30;
+  --bg-hover-light: #eef2f6;
+  --bg-hover-dark: #1e293b;
+
+  --border-subtle-light: #e2e8f0;
+  --border-subtle-dark: #222f43;
+  --border-strong-light: #cbd5e1;
+  --border-strong-dark: #334155;
+
+  --text-primary-light: #0f172a;
+  --text-primary-dark: #f8fafc;
+  --text-secondary-light: #334155;
+  --text-secondary-dark: #cbd5e1;
+  --text-muted-light: #64748b;
+  --text-muted-dark: #94a3b8;
+
+  --topbar-bg-light: rgba(255, 255, 255, 0.88);
+  --topbar-bg-dark: rgba(9, 13, 20, 0.88);
+
+  /* Fallback defaults (Light) */
+  --bg-canvas: var(--bg-canvas-light);
+  --bg-surface: var(--bg-surface-light);
+  --bg-elevated: var(--bg-elevated-light);
+  --bg-hover: var(--bg-hover-light);
+  --border-subtle: var(--border-subtle-light);
+  --border-strong: var(--border-strong-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --text-muted: var(--text-muted-light);
+  --topbar-bg: var(--topbar-bg-light);
+
+  /* Fallback for browsers without light-dark() support */
+  @media (prefers-color-scheme: dark) {
+    --bg-canvas: var(--bg-canvas-dark);
+    --bg-surface: var(--bg-surface-dark);
+    --bg-elevated: var(--bg-elevated-dark);
+    --bg-hover: var(--bg-hover-dark);
+    --border-subtle: var(--border-subtle-dark);
+    --border-strong: var(--border-strong-dark);
+    --text-primary: var(--text-primary-dark);
+    --text-secondary: var(--text-secondary-dark);
+    --text-muted: var(--text-muted-dark);
+    --topbar-bg: var(--topbar-bg-dark);
+  }
+
+  @supports (color: light-dark(white, black)) {
+    --bg-canvas: light-dark(var(--bg-canvas-light), var(--bg-canvas-dark));
+    --bg-surface: light-dark(var(--bg-surface-light), var(--bg-surface-dark));
+    --bg-elevated: light-dark(var(--bg-elevated-light), var(--bg-elevated-dark));
+    --bg-hover: light-dark(var(--bg-hover-light), var(--bg-hover-dark));
+    --border-subtle: light-dark(var(--border-subtle-light), var(--border-subtle-dark));
+    --border-strong: light-dark(var(--border-strong-light), var(--border-strong-dark));
+    --text-primary: light-dark(var(--text-primary-light), var(--text-primary-dark));
+    --text-secondary: light-dark(var(--text-secondary-light), var(--text-secondary-dark));
+    --text-muted: light-dark(var(--text-muted-light), var(--text-muted-dark));
+    --topbar-bg: light-dark(var(--topbar-bg-light), var(--topbar-bg-dark));
+  }
 
   --accent-emerald: #10b981;
   --accent-emerald-bg: rgba(16, 185, 129, 0.14);
@@ -24,9 +86,17 @@
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 *,
@@ -67,8 +137,8 @@ body {
   position: sticky;
   inset-block-start: 0;
   z-index: 20;
-  background: rgba(11, 15, 23, 0.92);
-  backdrop-filter: blur(10px);
+  background: var(--topbar-bg);
+  backdrop-filter: blur(12px);
   border-block-end: 1px solid var(--border-subtle);
 }
 
@@ -146,7 +216,8 @@ body {
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* BUTTONS */
@@ -217,18 +288,23 @@ body {
   padding: 20px 24px 64px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+}
+
+.view-panel:focus {
+  outline: none;
 }
 
 /* SIMULATOR BAR */
 .simulator-bar {
-  background: linear-gradient(90deg, rgba(23, 32, 51, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+  background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .simulator-header {
@@ -263,7 +339,7 @@ body {
 .sim-btn {
   padding: 8px 13px;
   border-radius: var(--radius-sm);
-  background: var(--bg-surface);
+  background: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
   font-family: var(--font-sans);
@@ -275,13 +351,13 @@ body {
 
 .sim-btn:hover {
   transform: translateY(-2px);
-  background: var(--bg-elevated);
+  background: var(--bg-hover);
   border-color: var(--text-muted);
 }
 
 .sim-hot {
   border-color: rgba(249, 115, 22, 0.5);
-  background: rgba(249, 115, 22, 0.08);
+  background: rgba(249, 115, 22, 0.09);
 }
 
 .sim-webhook {
@@ -303,7 +379,30 @@ body {
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.kpi-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpi-chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.kpi-chip-hot {
+  background: var(--accent-orange-bg);
+  color: var(--accent-orange);
+  border-color: rgba(249, 115, 22, 0.35);
 }
 
 .kpi-card-hot {
@@ -312,8 +411,8 @@ body {
 }
 
 .kpi-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -335,6 +434,36 @@ body {
 .kpi-foot {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* BANT TELEMETRY DISTRIBUTION BAR */
+.telemetry-bar {
+  display: flex;
+  inline-size: 100%;
+  block-size: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  gap: 2px;
+  margin-block-start: 2px;
+}
+
+.telemetry-seg {
+  block-size: 100%;
+  transition: inline-size 0.3s ease;
+}
+
+.seg-hot {
+  background: var(--accent-orange);
+}
+.seg-warm {
+  background: var(--accent-amber);
+}
+.seg-cold {
+  background: var(--accent-cyan);
+}
+.seg-disq {
+  background: var(--accent-crimson);
 }
 
 /* CONTROLS & TABS */
@@ -387,6 +516,24 @@ body {
   justify-content: flex-end;
 }
 
+.search-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-kbd {
+  position: absolute;
+  inset-inline-end: 9px;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  pointer-events: none;
+}
+
 .input-control {
   background: var(--bg-canvas);
   color: var(--text-primary);
@@ -403,7 +550,8 @@ body {
 }
 
 #filter-search {
-  min-inline-size: 240px;
+  min-inline-size: 270px;
+  padding-inline-end: 32px;
 }
 
 /* KANBAN BOARD */
@@ -510,7 +658,7 @@ body {
   justify-content: space-between;
   gap: 6px;
   padding-block-start: 6px;
-  border-block-start: 1px solid rgba(255, 255, 255, 0.05);
+  border-block-start: 1px solid var(--border-subtle);
   font-size: 11.5px;
   color: var(--text-muted);
 }
@@ -754,7 +902,7 @@ dialog {
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
 }
 
 dialog:modal {
@@ -764,7 +912,7 @@ dialog:modal {
 dialog::backdrop {
   overflow: hidden;
   overscroll-behavior: contain;
-  background-color: rgba(5, 8, 15, 0.72);
+  background-color: rgba(5, 8, 15, 0.68);
   backdrop-filter: blur(3px);
 }
 
@@ -971,7 +1119,7 @@ dialog::backdrop {
   border-inline-start: 4px solid var(--accent-emerald);
   border-radius: var(--radius-sm);
   padding: 12px 16px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
   font-size: 13px;
   max-inline-size: 380px;
 }
