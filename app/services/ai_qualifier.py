@@ -510,6 +510,13 @@ def qualify_lead_in_db(
     db.add(interaction)
     db.commit()
     db.refresh(lead)
+
+    if settings.AUTO_ENROLL_SEQUENCE_ON_QUALIFY:
+        from app.services.automation_service import enroll_lead_in_sequence
+
+        enroll_lead_in_sequence(db=db, lead=lead, replace_pending=True)
+        db.refresh(lead)
+
     return lead, result
 
 

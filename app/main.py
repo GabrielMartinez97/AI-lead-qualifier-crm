@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.routers import ai_agent, leads, webhooks
+from app.routers import ai_agent, automation, leads, webhooks
 
 
 @asynccontextmanager
@@ -31,6 +31,7 @@ app.add_middleware(
 app.include_router(leads.router, prefix=settings.API_V1_STR)
 app.include_router(webhooks.router, prefix=settings.API_V1_STR)
 app.include_router(ai_agent.router, prefix=settings.API_V1_STR)
+app.include_router(automation.router, prefix=settings.API_V1_STR)
 
 
 @app.get("/health", tags=["System"])
